@@ -131,7 +131,7 @@ static void digipot_init(void)
         .command_bits = 0,
         .address_bits = 0,
         .mode = 0,                         // SPI mode 0
-        .clock_speed_hz = 1 * 1000 * 1000, // 1 MHz        
+        .clock_speed_hz = 100 * 1000, // 100 KHz        
         .spics_io_num = PIN_NUM_CS,
         .queue_size = 1,
     };
@@ -320,25 +320,25 @@ static void uart_rx_task(void *arg) {
                             } else {
                                 uart_print("Laser Power Disabled\r\n");
                             }
-                      } else if (strcmp(line, "5") == 0) {
-                          static bool laser_on = false;
-                          laser_on = !laser_on;
-                          gpio_set_level(LASER_ENABLE, laser_on ? 1 : 0);
-                          if (laser_on) {
-                              uart_print("Laser Emission Enabled\r\n");
-                          } else {
-                              uart_print("Laser Emission Disabled\r\n");
-                          }
-                     } else if (strcmp(line, "9") == 0) {
-                          static bool fan_set = true;
-                          fan_set = !fan_set;
-                          gpio_set_level(FAN_ENABLE, fan_set ? 0 : 1);
-                          if (fan_set) {
-                              uart_print("Fans Disabled\r\n");
-                          } else {
-                              uart_print("Fans Enabled\r\n");
-                          }
-                      }                         
+                        } else if (strcmp(line, "5") == 0) {
+                            static bool laser_on = false;
+                            laser_on = !laser_on;
+                            gpio_set_level(LASER_ENABLE, laser_on ? 1 : 0);
+                            if (laser_on) {
+                                uart_print("Laser Emission Enabled\r\n");
+                            } else {
+                                uart_print("Laser Emission Disabled\r\n");
+                            }
+                       } else if (strcmp(line, "9") == 0) {
+                            static bool fan_set = true;
+                            fan_set = !fan_set;
+                            gpio_set_level(FAN_ENABLE, fan_set ? 0 : 1);
+                            if (fan_set) {
+                                uart_print("Fans Disabled\r\n");
+                            } else {
+                                uart_print("Fans Enabled\r\n");
+                            }
+                        }                         
                     }
                     else if (state == UART_STATE_digipot_INPUT) {
                         // Numeric input for digipot    
@@ -399,16 +399,16 @@ void app_main(void) {
     };
 
     gpio_config_t fan_cfg = {
-        .pin_bit_mask = ((1ULL << FAN_ENABLE) | (1ULL << LASER_LDO_EN)),
+        .pin_bit_mask = ((1ULL << FAN_ENABLE) | (1ULL << LASER_LDO_EN) | (1ULL << LASER_ENABLE)),
         .mode = GPIO_MODE_OUTPUT,
         .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_DISABLE
     };
     gpio_config(&fan_cfg); 
-    gpio_set_level(FAN_ENABLE, 1); // Start with fan on
-    gpio_set_level(LASER_LDO_EN, 0); // Laser Modulation disabled
-    gpio_set_level(LASER_ENABLE, 0); // Laser physically disabled
+    gpio_set_level(FAN_ENABLE, 0); // 1 = Start with fan on
+    gpio_set_level(LASER_LDO_EN, 0); // 0 = Laser Modulation disabled @ start
+    gpio_set_level(LASER_ENABLE, 0); // 0 = Laser physically disabled @ start
 
     uart_driver_install(UART_NUM, UART_BUF * 2, 0, 10, &uart_event_queue, 0);
     uart_param_config(UART_NUM, &cfg);
